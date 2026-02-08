@@ -14,5 +14,16 @@ indent_size = 4
 indent_style = space
 indent_size = 2
 
+[*.{toml,ini}]
+indent_style = space
+indent_size = 2
+
 [*.md]
 trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+
+[Dockerfile]
+indent_style = space
+indent_size = 2
