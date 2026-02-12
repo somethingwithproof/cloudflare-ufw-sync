@@ -5,24 +5,29 @@ on:
     types: [opened, labeled]
   pull_request:
     types: [opened, labeled]
-  
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   assign_to_project:
     runs-on: ubuntu-latest
     steps:
       - name: Add PR to Project
-        uses: actions/add-to-project@v1.0.2
+        uses: actions/add-to-project@244f685bbc3b7adfa8466e08b698b5577571133e # v1.0.2
         with:
           project-url: https://github.com/users/thomasvincent/projects/1
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Assign author and thomasvincent
-        uses: actions/github-script@v8
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const issue = context.payload.issue || context.payload.pull_request;
-            
+
             // Always assign author
             await github.rest.issues.addAssignees({
               owner: context.repo.owner,
@@ -30,7 +35,7 @@ jobs:
               issue_number: issue.number,
               assignees: [issue.user.login]
             });
-            
+
             // Always assign thomasvincent unless they're already the author
             if (issue.user.login !== 'thomasvincent') {
               await github.rest.issues.addAssignees({
@@ -40,7 +45,7 @@ jobs:
                 assignees: ['thomasvincent']
               });
             }
-            
+
             // Add thomasvincent as reviewer for PRs
             if (context.payload.pull_request) {
               if (issue.user.login !== 'thomasvincent') {

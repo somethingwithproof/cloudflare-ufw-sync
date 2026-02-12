@@ -4,7 +4,6 @@ import ipaddress
 import logging
 import re
 import subprocess
-from typing import Dict, List, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +11,9 @@ logger = logging.getLogger(__name__)
 class UFWManager:
     """Manages UFW rules for Cloudflare IP ranges."""
 
-    def __init__(self, port: int = 443, proto: str = "tcp", comment: str = "Cloudflare IP"):
+    def __init__(
+        self, port: int = 443, proto: str = "tcp", comment: str = "Cloudflare IP"
+    ):
         self.port = port
         self.proto = proto
         self.comment = comment
@@ -21,11 +22,11 @@ class UFWManager:
     def _check_ufw_installed(self) -> None:
         try:
             subprocess.run(["which", "ufw"], check=True, capture_output=True)
-        except subprocess.CalledProcessError:
-            raise RuntimeError("UFW is not installed")
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError("UFW is not installed") from e
 
-    def _run_ufw(self, args: List[str]) -> Tuple[bool, str]:
-        cmd = ["ufw"] + args
+    def _run_ufw(self, args: list[str]) -> tuple[bool, str]:
+        cmd = ["ufw", *args]
         logger.debug(f"Running: {' '.join(cmd)}")
         try:
             result = subprocess.run(cmd, check=True, capture_output=True, text=True)
@@ -34,13 +35,13 @@ class UFWManager:
             logger.error(f"UFW error: {e.stderr}")
             return False, e.stderr
 
-    def get_existing_rules(self) -> Dict[str, Set[str]]:
+    def get_existing_rules(self) -> dict[str, set[str]]:
         """Get existing Cloudflare rules from UFW."""
         success, output = self._run_ufw(["status", "numbered"])
         if not success:
             return {"v4": set(), "v6": set()}
 
-        ip_ranges: Dict[str, Set[str]] = {"v4": set(), "v6": set()}
+        ip_ranges: dict[str, set[str]] = {"v4": set(), "v6": set()}
 
         for line in output.splitlines():
             if self.comment not in line:
@@ -64,8 +65,19 @@ class UFWManager:
         return ip_ranges
 
     def add_rule(self, ip_range: str) -> bool:
-        args = ["allow", "proto", self.proto, "from", ip_range,
-                "to", "any", "port", str(self.port), "comment", self.comment]
+        args = [
+            "allow",
+            "proto",
+            self.proto,
+            "from",
+            ip_range,
+            "to",
+            "any",
+            "port",
+            str(self.port),
+            "comment",
+            self.comment,
+        ]
         success, _ = self._run_ufw(args)
         if success:
             logger.info(f"Added rule for {ip_range}")
@@ -93,22 +105,22 @@ class UFWManager:
             logger.info(f"Deleted rule for {ip_range}")
         return success
 
-    def sync_rules(self, ip_ranges: Dict[str, Set[str]]) -> Tuple[int, int]:
+    def sync_rules(self, ip_ranges: dict[str, set[str]]) -> tuple[int, int]:
         """Sync UFW rules with Cloudflare IPs. Returns (added, removed) counts."""
         existing = self.get_existing_rules()
         added = removed = 0
 
         for ip_type, ranges in ip_ranges.items():
             for ip_range in ranges:
-                if ip_range not in existing[ip_type]:
-                    if self.add_rule(ip_range):
-                        added += 1
+                if ip_range not in existing[ip_type] and self.add_rule(ip_range):
+                    added += 1
 
         for ip_type, ranges in existing.items():
             for ip_range in ranges:
-                if ip_range not in ip_ranges.get(ip_type, set()):
-                    if self.delete_rule(ip_range):
-                        removed += 1
+                if ip_range not in ip_ranges.get(ip_type, set()) and self.delete_rule(
+                    ip_range
+                ):
+                    removed += 1
 
         logger.info(f"Sync: {added} added, {removed} removed")
         return added, removed

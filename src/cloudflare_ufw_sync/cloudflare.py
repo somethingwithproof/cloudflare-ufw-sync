@@ -1,7 +1,6 @@
 """Cloudflare API client."""
 
 import logging
-from typing import Dict, List, Optional, Set
 
 import requests
 
@@ -13,12 +12,12 @@ CLOUDFLARE_IPS_URL = "https://api.cloudflare.com/client/v4/ips"
 class CloudflareClient:
     """Fetches IP ranges from Cloudflare's API."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.session = requests.Session()
         if api_key:
             self.session.headers.update({"Authorization": f"Bearer {api_key}"})
 
-    def get_ip_ranges(self, ip_types: Optional[List[str]] = None) -> Dict[str, Set[str]]:
+    def get_ip_ranges(self, ip_types: list[str] | None = None) -> dict[str, set[str]]:
         """Fetch Cloudflare IP ranges. Returns dict mapping 'v4'/'v6' to IP sets."""
         if ip_types is None:
             ip_types = ["v4", "v6"]
@@ -30,7 +29,8 @@ class CloudflareClient:
         data = response.json()
 
         if not data.get("success", False):
-            raise RuntimeError(f"Cloudflare API error: {data.get('errors', ['Unknown'])}")
+            errors = data.get("errors", ["Unknown"])
+            raise RuntimeError(f"Cloudflare API error: {errors}")
 
         result = data.get("result", {})
         ip_ranges = {}
