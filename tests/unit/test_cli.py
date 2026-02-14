@@ -67,6 +67,7 @@ def test_main_dispatch_uninstall(mock_handle):
 def test_cli_version_exits_cleanly():
     # argparse "--version" triggers a SystemExit after printing; capture it
     import pytest
+
     with pytest.raises(SystemExit):
         main(["--version"])
 
@@ -114,12 +115,12 @@ def test_handle_install_missing_service_file(mock_exists):
 @patch("cloudflare_ufw_sync.cli.Path.exists", return_value=True)
 @patch("cloudflare_ufw_sync.cli.Path")
 def test_handle_install_success(mock_path_cls, mock_exists, mock_copy, mock_run):
-    """Happy path: service file exists, we copy it, reload daemon, and do not enable when --no-enable is set.
+    """Happy path: service file exists, we copy it, reload daemon.
 
-    Everything that would touch the real system is mocked: filesystem and systemctl calls.
+    Do not enable when --no-enable is set. Everything that would touch
+    the real system is mocked: filesystem and systemctl calls.
     """
     # Make Path(...)/"scripts"/"cloudflare-ufw-sync.service" behave like it exists
-    mock_service_path = MagicMock()
     mock_joined = MagicMock()
     mock_joined.exists.return_value = True
     # simulate /etc/systemd/system destination path for printing
@@ -155,10 +156,9 @@ def test_handle_uninstall_success(mock_path_cls, mock_run):
 @patch("cloudflare_ufw_sync.cli.SyncService")
 @patch("cloudflare_ufw_sync.cli.os.fork", return_value=1234)
 def test_handle_daemon_parent_returns_immediately(mock_fork, mock_sync_cls):
-    """When not in foreground, parent process should return 0 and not run daemon."""
-    rc = __import__("cloudflare_ufw_sync.cli", fromlist=["handle_daemon"]).handle_daemon(
-        Config(), foreground=False
-    )
+    """When not in foreground, parent returns 0 and does not run daemon."""
+    cli_module = __import__("cloudflare_ufw_sync.cli", fromlist=["handle_daemon"])
+    rc = cli_module.handle_daemon(Config(), foreground=False)
     assert rc == 0
     mock_sync_cls.assert_not_called()
 
@@ -168,9 +168,8 @@ def test_handle_daemon_foreground_calls_run(mock_sync_cls):
     """Foreground mode should call SyncService.run_daemon and return 0."""
     mock_service = MagicMock()
     mock_sync_cls.return_value = mock_service
-    rc = __import__("cloudflare_ufw_sync.cli", fromlist=["handle_daemon"]).handle_daemon(
-        Config(), foreground=True
-    )
+    cli_module = __import__("cloudflare_ufw_sync.cli", fromlist=["handle_daemon"])
+    rc = cli_module.handle_daemon(Config(), foreground=True)
     assert rc == 0
     mock_service.run_daemon.assert_called_once()
 
@@ -189,8 +188,10 @@ def test_handle_sync_error_path(mock_sync_cls):
 @patch("shutil.copy")
 @patch("cloudflare_ufw_sync.cli.Path.exists", return_value=True)
 @patch("cloudflare_ufw_sync.cli.Path")
-def test_handle_install_enables_when_no_flag(mock_path_cls, mock_exists, mock_copy, mock_run):
-    """Install without --no-enable should enable and start service (calls mocked)."""
+def test_handle_install_enables_when_no_flag(
+    mock_path_cls, mock_exists, mock_copy, mock_run
+):
+    """Install without --no-enable should enable and start service."""
     mock_joined = MagicMock()
     mock_joined.exists.return_value = True
     mock_path_cls.return_value.__truediv__.return_value = mock_joined

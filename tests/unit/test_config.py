@@ -3,10 +3,8 @@ Tests for the config module.
 """
 
 import tempfile
-from pathlib import Path
 from unittest.mock import patch
 
-import pytest
 import yaml
 
 from cloudflare_ufw_sync.config import DEFAULT_CONFIG, Config
@@ -26,7 +24,9 @@ class TestConfig:
         with caplog.at_level("WARNING"):
             assert cfg.get("cloudflare", "api_key") is None
             # Optional: ensure a warning message was emitted
-            assert any("dictionary was expected" in msg for msg in caplog.text.splitlines())
+            lines = caplog.text.splitlines()
+            assert any("dictionary was expected" in msg for msg in lines)
+
 
 @patch("logging.FileHandler", side_effect=Exception("nope"))
 def test_setup_logging_file_handler_error(mock_fh):
@@ -44,6 +44,7 @@ def test_setup_logging_file_success(tmp_path):
     cfg.config["logging"] = {"level": "INFO", "file": str(log_file)}
     cfg.setup_logging()
     import logging
+
     logging.getLogger(__name__).info("hello")
     # File should exist and be non-empty after a log write
     assert log_file.exists()
@@ -113,11 +114,11 @@ def test_get_entire_section_when_key_none():
         assert config.get("cloudflare", "nonexistent") is None
 
     @patch("logging.getLogger")
-    def test_setup_logging(self, mock_getLogger):
+    def test_setup_logging(self, mock_get_logger):
         """Test that logging is set up correctly."""
         # This test is a bit complex to fully test,
         # so we just check that the function doesn't error
         config = Config()
         config.setup_logging()
         # At minimum, getLogger should have been called
-        mock_getLogger.assert_called()
+        mock_get_logger.assert_called()

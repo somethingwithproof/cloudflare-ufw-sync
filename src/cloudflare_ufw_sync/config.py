@@ -7,7 +7,6 @@ It provides a Config class for loading settings from files and setting up loggin
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
 
 import yaml
 
@@ -50,7 +49,7 @@ class Config:
     Provides access to configuration values and logging setup.
     """
 
-    def __init__(self, config_path: Optional[Union[str, Path]] = None):
+    def __init__(self, config_path: str | Path | None = None):
         """Initialize configuration handler.
 
         Sets up our config system - we'll look for config files in a few standard
@@ -67,7 +66,7 @@ class Config:
         self.config = DEFAULT_CONFIG.copy()
         self._load_config(config_path)
 
-    def _load_config(self, config_path: Optional[Union[str, Path]] = None) -> None:
+    def _load_config(self, config_path: str | Path | None = None) -> None:
         """Load configuration from file.
 
         Attempts to load configuration from the specified path or from the
@@ -80,18 +79,15 @@ class Config:
         """
         # If they gave us an explicit path, only look there
         # Otherwise, check all the usual places where config files hide
-        if config_path:
-            paths = [Path(config_path)]
-        else:
-            paths = CONFIG_PATHS
+        paths = [Path(config_path)] if config_path else CONFIG_PATHS
 
         # Try each path in order until we find a config file
         for path in paths:
             if path.exists():
                 logger.info(f"Loading configuration from {path}")
                 try:
-                    with open(path, "r") as f:
-                        # Load the YAML - hoping it's valid YAML and not just random text
+                    with open(path) as f:
+                        # Load the YAML (hoping it's valid YAML, not random text)
                         user_config = yaml.safe_load(f)
                         if user_config:
                             # Merge with our defaults - user config wins for overlaps
@@ -100,7 +96,7 @@ class Config:
                     break
                 except Exception as e:
                     # Config file exists but something went wrong reading it
-                    logger.error(f"Error loading config from {path}: {str(e)}")
+                    logger.error(f"Error loading config from {path}: {e!s}")
         else:
             # Didn't find any config files - that's okay, we have defaults
             # (the else clause on a for loop - Python's most underused feature!)
@@ -108,7 +104,7 @@ class Config:
                 f"No configuration file found, using defaults. Searched: {paths}"
             )
 
-    def _merge_config(self, user_config: Dict) -> None:
+    def _merge_config(self, user_config: dict) -> None:
         """Merge user configuration with defaults.
 
         Takes the user's config and layers it on top of our defaults. Think of it
@@ -125,7 +121,7 @@ class Config:
                 config_section = self.config[section]
                 if isinstance(config_section, dict) and isinstance(values, dict):
                     # Both are dicts - merge them intelligently
-                    # (this way user can override specific values without replacing the whole section)
+                    # User can override specific values, not the whole section
                     updated_section = dict(config_section)
                     updated_section.update(values)
                     self.config[section] = updated_section
@@ -137,8 +133,8 @@ class Config:
                 self.config[section] = values
 
     def get(
-        self, section: str, key: Optional[str] = None
-    ) -> Union[Dict, List, str, int, bool, None]:
+        self, section: str, key: str | None = None
+    ) -> dict | list | str | int | bool | None:
         """Get configuration value from the loaded config.
 
         Args:
@@ -212,7 +208,7 @@ class Config:
         log_file_value = log_config.get("file")
         log_file = str(log_file_value) if log_file_value is not None else None
 
-        # Set up a nice log format with timestamps (because logs without timestamps are basically useless)
+        # Set up log format with timestamps
         formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
@@ -239,6 +235,6 @@ class Config:
                 logger.info(f"Logging to file: {log_file}")
             except Exception as e:
                 # Failed to set up file logging - probably permission issues
-                logger.error(f"Error setting up log file {log_file}: {str(e)}")
+                logger.error(f"Error setting up log file {log_file}: {e!s}")
 
         logger.debug("Logging configured")

@@ -7,6 +7,8 @@ we can verify our string parsing and decision-making in a safe, deterministic wa
 
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from cloudflare_ufw_sync.ufw import UFWManager
 
 
@@ -114,35 +116,44 @@ def test_get_existing_rules_ignores_malformed_lines(mock_run):
     """A weird line shouldn't crash parsing; we just skip it politely."""
     mock_run.side_effect = [
         MagicMock(),
-        MagicMock(stdout="""
+        MagicMock(
+            stdout="""
 [ 1] nonsense without expected tokens
 [ 2] 2001:db8::/32   ALLOW IN  tcp/443  from 2001:db8::/32   # Cloudflare IP
-"""),
+"""
+        ),
     ]
     ufw = UFWManager()
     rules = ufw.get_existing_rules()
     assert "2001:db8::/32" in rules["v6"]
 
 
-import pytest
-
-
 @patch("cloudflare_ufw_sync.ufw.subprocess.run")
 @pytest.mark.parametrize(
     "mismatched_line,expected_keep",
     [
-        ("[ 1] ***********/24  ALLOW IN  tcp/80  from ***********/24  # Cloudflare IP", True),
-        ("[ 1] ***********/24  ALLOW IN  udp/443 from ***********/24  # Cloudflare IP", True),
+        (
+            "[ 1] ***********/24  ALLOW IN  tcp/80  from ***********/24  "
+            "# Cloudflare IP",
+            True,
+        ),
+        (
+            "[ 1] ***********/24  ALLOW IN  udp/443 from ***********/24  "
+            "# Cloudflare IP",
+            True,
+        ),
     ],
 )
 def test_get_existing_rules_mismatch_filters(mock_run, mismatched_line, expected_keep):
-    """Rules with mismatched proto/port should be ignored while matching ones are kept."""
+    """Rules with mismatched proto/port should be ignored."""
     mock_run.side_effect = [
         MagicMock(),
-        MagicMock(stdout=f"""
+        MagicMock(
+            stdout=f"""
 {mismatched_line}
 [ 2] 2001:db8::/32   ALLOW IN  tcp/443 from 2001:db8::/32   # Cloudflare IP
-"""),
+"""
+        ),
     ]
     ufw = UFWManager(port=443, proto="tcp", comment="Cloudflare IP")
     rules = ufw.get_existing_rules()
@@ -156,10 +167,12 @@ def test_get_existing_rules_skips_invalid_cidr(mock_run):
     """Lines with invalid CIDR should be warned about and skipped."""
     mock_run.side_effect = [
         MagicMock(),
-        MagicMock(stdout="""
+        MagicMock(
+            stdout="""
 [ 1] badcidr             ALLOW IN  tcp/443 from badcidr            # Cloudflare IP
 [ 2] 203.0.113.0/24      ALLOW IN  tcp/443 from 203.0.113.0/24     # Cloudflare IP
-"""),
+"""
+        ),
     ]
     ufw = UFWManager()
     rules = ufw.get_existing_rules()
@@ -174,10 +187,16 @@ def test_delete_rule_found_but_delete_fails(mock_run, monkeypatch):
     # which ufw ok
     mock_run.return_value = MagicMock()
     ufw = UFWManager()
-    seq = iter([
-        (True, """\n[ 7] ***********/24  ALLOW IN  tcp/443  from ***********/24  # Cloudflare IP\n"""),  # status numbered
-        (False, "delete failed"),  # delete 7
-    ])
+    seq = iter(
+        [
+            (
+                True,
+                "\n[ 7] ***********/24  ALLOW IN  tcp/443  from ***********/24  "
+                "# Cloudflare IP\n",
+            ),  # status numbered
+            (False, "delete failed"),  # delete 7
+        ]
+    )
     monkeypatch.setattr(ufw, "_run_ufw_command", lambda args: next(seq))
     assert ufw.delete_rule("***********/24") is False
 
@@ -187,9 +206,11 @@ def test_delete_rule_not_found_returns_false(mock_run):
     """If we can't find a rule number, we fail gracefully and return False."""
     mock_run.side_effect = [
         MagicMock(),
-        MagicMock(stdout="""
+        MagicMock(
+            stdout="""
 [ 1] some other thing # Cloudflare IP
-"""),
+"""
+        ),
     ]
     ufw = UFWManager()
     assert ufw.delete_rule("***********/24") is False
@@ -246,9 +267,11 @@ def test_ensure_enabled_enable_failure(mock_run, monkeypatch):
     # which ufw ok
     mock_run.return_value = MagicMock()
     ufw = UFWManager()
-    seq = iter([
-        (True, "Status: inactive"),  # status verbose
-        (False, "enable failed"),    # --force enable
-    ])
+    seq = iter(
+        [
+            (True, "Status: inactive"),  # status verbose
+            (False, "enable failed"),  # --force enable
+        ]
+    )
     monkeypatch.setattr(ufw, "_run_ufw_command", lambda args: next(seq))
     assert ufw.ensure_enabled() is False

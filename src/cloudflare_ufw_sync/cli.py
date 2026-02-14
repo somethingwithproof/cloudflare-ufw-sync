@@ -9,7 +9,6 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from cloudflare_ufw_sync import __version__
 from cloudflare_ufw_sync.config import Config
@@ -18,7 +17,7 @@ from cloudflare_ufw_sync.sync import SyncService
 logger = logging.getLogger(__name__)
 
 
-def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
+def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     """Parse command line arguments.
 
     Args:
@@ -87,7 +86,7 @@ def handle_sync(config: Config, force: bool = False) -> int:
         print(f"  Rules removed: {result['rules']['removed']}")
         return 0
     except Exception as e:
-        logger.error(f"Synchronization failed: {str(e)}")
+        logger.error(f"Synchronization failed: {e!s}")
         return 1
 
 
@@ -114,7 +113,7 @@ def handle_daemon(config: Config, foreground: bool = False) -> int:
         sync_service.run_daemon()
         return 0
     except Exception as e:
-        logger.error(f"Daemon failed: {str(e)}")
+        logger.error(f"Daemon failed: {e!s}")
         return 1
 
 
@@ -140,7 +139,7 @@ def handle_status(config: Config) -> int:
         print(f"  IPv6 rules: {len(existing_rules['v6'])}")
         return 0
     except Exception as e:
-        logger.error(f"Status check failed: {str(e)}")
+        logger.error(f"Status check failed: {e!s}")
         return 1
 
 
@@ -186,7 +185,7 @@ def handle_install(config: Config, no_enable: bool = False) -> int:
 
         return 0
     except Exception as e:
-        logger.error(f"Installation failed: {str(e)}")
+        logger.error(f"Installation failed: {e!s}")
         return 1
 
 
@@ -223,11 +222,11 @@ def handle_uninstall(config: Config) -> int:
 
         return 0
     except Exception as e:
-        logger.error(f"Uninstallation failed: {str(e)}")
+        logger.error(f"Uninstallation failed: {e!s}")
         return 1
 
 
-def main(args: Optional[List[str]] = None) -> int:
+def main(args: list[str] | None = None) -> int:
     """Main entry point for the command-line interface.
 
     Parses arguments, sets up configuration and logging, and dispatches to

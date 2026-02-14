@@ -7,7 +7,7 @@ this like checking the wiring of a control panel without powering the whole
 building.
 """
 
-from typing import Any, Dict, Set
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 from cloudflare_ufw_sync.config import Config
@@ -53,7 +53,7 @@ def test_sync_happy_path(mock_cf_client_cls, mock_ufw_cls):
 
     # Run the service using defaults (which we keep deliberately simple)
     svc = SyncService(Config())
-    result: Dict[str, Any] = svc.sync()
+    result: dict[str, Any] = svc.sync()
 
     # Make sure we asked for IPs and then told UFW what to do with them
     mock_cf_client.get_ip_ranges.assert_called()

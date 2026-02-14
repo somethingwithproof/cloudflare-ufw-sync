@@ -1,14 +1,19 @@
 name: Auto Assign
+
 on:
   pull_request:
     types: [opened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   add-assignees:
     runs-on: ubuntu-latest
     steps:
       - name: Auto-assign PR
-        uses: kentaro-m/auto-assign-action@v2.0.1
+        uses: kentaro-m/auto-assign-action@25e88b5cba4c4b8633a6eeadaef3de0bae8e0d0d # v2.0.1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           assignees: thomasvincent

@@ -2,7 +2,7 @@
 
 import logging
 import time
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from cloudflare_ufw_sync.cloudflare import CloudflareClient
 from cloudflare_ufw_sync.config import Config
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class SyncService:
     """Syncs Cloudflare IP ranges with UFW rules."""
 
-    def __init__(self, config: Optional[Config] = None):
+    def __init__(self, config: Config | None = None):
         self.config = config or Config()
 
         api_key = self.config.get("cloudflare", "api_key")
@@ -27,7 +27,7 @@ class SyncService:
             comment=str(self.config.get("ufw", "comment") or "Cloudflare IP"),
         )
 
-    def sync(self) -> Dict[str, Any]:
+    def sync(self) -> dict[str, Any]:
         """Sync Cloudflare IPs with UFW. Returns status dict."""
         logger.info("Starting sync")
 
@@ -47,8 +47,10 @@ class SyncService:
         logger.info(f"Sync done: {added} added, {removed} removed")
         return {
             "status": "success",
-            "ips": {"v4": len(cloudflare_ips.get("v4", set())),
-                    "v6": len(cloudflare_ips.get("v6", set()))},
+            "ips": {
+                "v4": len(cloudflare_ips.get("v4", set())),
+                "v6": len(cloudflare_ips.get("v6", set())),
+            },
             "rules": {"added": added, "removed": removed},
         }
 
