@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     strategy:
       matrix:
         python-version: ['3.12', '3.13']
@@ -61,7 +61,7 @@ jobs:
         fail_ci_if_error: false
 
   tox-in-docker:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
       - name: Build dev image
