@@ -48,6 +48,13 @@ cloudflare-ufw-sync = "cloudflare_ufw_sync.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/cloudflare_ufw_sync"]
 
+# isort 8 changed its default multi-line output; pin the black profile so the
+# standalone isort tox lint env stays consistent with ruff's import formatting.
+[tool.isort]
+profile = "black"
+line_length = 88
+src_paths = ["src", "tests"]
+
 [tool.ruff]
 line-length = 88
 target-version = "py312"
