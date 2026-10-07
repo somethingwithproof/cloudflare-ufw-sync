@@ -1,6 +1,6 @@
 # Cloudflare UFW Sync
 
-[![CI](https://github.com/somethingwithproof/cloudflare-ufw-sync/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/somethingwithproof/cloudflare-ufw-sync/actions/workflows/ci.yml)
+[![Tests](https://github.com/somethingwithproof/cloudflare-ufw-sync/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/somethingwithproof/cloudflare-ufw-sync/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 [![Python requirement](https://img.shields.io/badge/Python_requirement-%3E%3D3.12-blue)](./pyproject.toml)
 
@@ -8,7 +8,7 @@ Cloudflare IP synchronization for UFW.
 
 ## Overview
 
-`cloudflare-ufw-sync` is a robust tool designed to automatically synchronize Cloudflare's IP ranges with your UFW (Uncomplicated Firewall) rules. The synchronizer manages its configured UFW rules; restricting origin access also depends on the default policy and any other allow rules. Synchronization alone does not prove that direct-origin access is blocked.
+`cloudflare-ufw-sync` synchronizes Cloudflare's IP ranges with your UFW (Uncomplicated Firewall) rules. The synchronizer manages its configured UFW rules; restricting origin access also depends on the default policy and any other allow rules. Synchronization alone does not prove that direct-origin access is blocked.
 
 ## Architecture
 
@@ -21,15 +21,9 @@ Cloudflare IP synchronization for UFW.
 - 🛠️ Supports both IPv4 and IPv6 address ranges
 - 🔍 Detailed logging for audit and troubleshooting
 - 🔧 Customizable configuration
-- 🧪 Comprehensive test suite
+- 🧪 Test suite
 
 ## Installation
-
-### From PyPI
-
-```bash
-pip install cloudflare-ufw-sync
-```
 
 ### From Source
 
@@ -53,12 +47,11 @@ cloudflare:
 ufw:
   default_policy: deny
   port: 443  # The port to allow access to
-  proto: tcp  # Protocol (tcp, udp, or both)
+  proto: tcp  # Protocol passed to ufw (for example tcp or udp)
   comment: "Cloudflare IP"  # Comment for UFW rules
 
 sync:
   interval: 86400  # Sync interval in seconds (default: 1 day)
-  enabled: true
 ```
 
 ## Usage
@@ -141,15 +134,11 @@ The project includes a `tox.ini` file that sets up environments for testing, lin
 # Install tox
 pip install tox
 
-# Run all tests and checks on all supported Python versions
+# Run all tests and checks
 tox
 
-# Run tests for a specific Python version
-tox -e py38  # For Python 3.8
-tox -e py39  # For Python 3.9
-tox -e py310 # For Python 3.10
-tox -e py311 # For Python 3.11
-tox -e py312 # For Python 3.12
+# Run tests on Python 3.12, the minimum supported version
+tox -e py312
 
 # Run only linting checks
 tox -e lint
