@@ -134,8 +134,8 @@ The project includes a `tox.ini` file that sets up environments for testing, lin
 # Install tox
 pip install tox
 
-# Run all tests and checks
-tox
+# Run tests, lint and type checks on supported Python
+tox -e py312,lint,mypy
 
 # Run tests on Python 3.12, the minimum supported version
 tox -e py312
