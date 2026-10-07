@@ -1,16 +1,14 @@
 # Cloudflare UFW Sync
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Tests](https://github.com/thomasvincent/cloudflare-ufw-sync/actions/workflows/tests.yml/badge.svg)](https://github.com/thomasvincent/cloudflare-ufw-sync/actions/workflows/tests.yml)
-[![PyPI](https://img.shields.io/pypi/v/cloudflare-ufw-sync)](https://pypi.org/project/cloudflare-ufw-sync/)
+[![CI](https://github.com/somethingwithproof/cloudflare-ufw-sync/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/somethingwithproof/cloudflare-ufw-sync/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+[![Python requirement](https://img.shields.io/badge/Python_requirement-%3E%3D3.12-blue)](./pyproject.toml)
 
-Enterprise-grade Cloudflare IP synchronization for UFW.
+Cloudflare IP synchronization for UFW.
 
 ## Overview
 
-`cloudflare-ufw-sync` is a robust tool designed to automatically synchronize Cloudflare's IP ranges with your UFW (Uncomplicated Firewall) rules. This ensures that only traffic coming from Cloudflare's network is allowed to access your web server.
+`cloudflare-ufw-sync` is a robust tool designed to automatically synchronize Cloudflare's IP ranges with your UFW (Uncomplicated Firewall) rules. The synchronizer manages its configured UFW rules; restricting origin access also depends on the default policy and any other allow rules. Synchronization alone does not prove that direct-origin access is blocked.
 
 ## Architecture
 
@@ -36,7 +34,7 @@ pip install cloudflare-ufw-sync
 ### From Source
 
 ```bash
-git clone https://github.com/thomasvincent/cloudflare-ufw-sync.git
+git clone https://github.com/somethingwithproof/cloudflare-ufw-sync.git
 cd cloudflare-ufw-sync
 pip install .
 ```
@@ -124,7 +122,7 @@ make docker-tox
 
 ```bash
 # Clone the repository
-git clone https://github.com/thomasvincent/cloudflare-ufw-sync.git
+git clone https://github.com/somethingwithproof/cloudflare-ufw-sync.git
 cd cloudflare-ufw-sync
 
 # Set up a virtual environment
