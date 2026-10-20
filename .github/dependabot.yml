@@ -1,8 +1,4 @@
-# Dependabot configuration for Mantl Platform
-# Comprehensive dependency tracking across all ecosystems
-# - GitHub Actions: Grouped updates to reduce PR noise
-# - Python (pip): Weekly security and feature updates
-# - Docker: Base image updates for containers
+# Dependabot configuration for cloudflare-ufw-sync
 version: 2
 updates:
   # =============================================
@@ -23,7 +19,6 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       prefix-development: "chore(deps-dev)"
-      include: "scope"
     groups:
       github-actions:
         patterns:
@@ -77,11 +72,45 @@ updates:
       - "automated"
     commit-message:
       prefix: "chore(deps)"
-      include: "scope"
     allow:
       - dependency-type: "all"
-  - package-ecosystem: "npm"
+
+  # =============================================
+  # Docker Compose
+  # =============================================
+  - package-ecosystem: "docker-compose"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      docker-compose-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # =============================================
+  # pre-commit hooks
+  # =============================================
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      pre-commit-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
