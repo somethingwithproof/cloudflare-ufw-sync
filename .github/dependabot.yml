@@ -20,6 +20,9 @@ updates:
       prefix: "chore(deps)"
       prefix-development: "chore(deps-dev)"
     groups:
+      codeql:
+        patterns:
+          - "github/codeql-action*"
       github-actions:
         patterns:
           - "*"
