@@ -5,6 +5,8 @@ updates:
   # GitHub Actions
   # =============================================
   - package-ecosystem: "github-actions"
+    cooldown:
+      default-days: 7
     directory: "/"
     schedule:
       interval: "weekly"
@@ -34,6 +36,8 @@ updates:
   # Python (pip)
   # =============================================
   - package-ecosystem: "pip"
+    cooldown:
+      default-days: 7
     directory: "/"
     schedule:
       interval: "weekly"
@@ -62,6 +66,8 @@ updates:
   # Docker
   # =============================================
   - package-ecosystem: "docker"
+    cooldown:
+      default-days: 7
     directory: "/"
     schedule:
       interval: "weekly"
@@ -82,6 +88,8 @@ updates:
   # Docker Compose
   # =============================================
   - package-ecosystem: "docker-compose"
+    cooldown:
+      default-days: 7
     directory: "/"
     schedule:
       interval: "weekly"
@@ -102,6 +110,8 @@ updates:
   # pre-commit hooks
   # =============================================
   - package-ecosystem: "pre-commit"
+    cooldown:
+      default-days: 7
     directory: "/"
     schedule:
       interval: "weekly"
