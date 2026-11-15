@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025-2026 Thomas Vincent <thomasvincent@gmail.com>
+# SPDX-License-Identifier: MIT
+
 """Basic construction tests for dataclasses.
 
 Dataclasses are simple by design, but these quick checks catch accidental
