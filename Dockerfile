@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2025-2026 Thomas Vincent <thomasvincent@gmail.com>
 # SPDX-License-Identifier: MIT
 
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 # Update system packages to get latest security patches
 RUN apt-get update && \
