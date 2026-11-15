@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025-2026 Thomas Vincent <thomasvincent@gmail.com>
+# SPDX-License-Identifier: MIT
+
 repository:
   name: cloudflare-ufw-sync
   description: A tool to synchronize Cloudflare IP ranges with UFW firewall rules

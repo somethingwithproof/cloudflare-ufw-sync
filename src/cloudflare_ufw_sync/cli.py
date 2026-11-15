@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025-2026 Thomas Vincent <thomasvincent@gmail.com>
+# SPDX-License-Identifier: MIT
+
 """Command line interface for cloudflare-ufw-sync.
 
 This module provides the command-line interface for the cloudflare-ufw-sync tool.

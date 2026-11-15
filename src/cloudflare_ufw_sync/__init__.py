@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025-2026 Thomas Vincent <thomasvincent@gmail.com>
+# SPDX-License-Identifier: MIT
+
 """Cloudflare UFW Sync - Enterprise-grade Cloudflare IP synchronization for UFW.
 
 This package provides tools to automatically synchronize Cloudflare's IP ranges
