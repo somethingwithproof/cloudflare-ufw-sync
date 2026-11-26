@@ -15,9 +15,21 @@ from pathlib import Path
 
 from cloudflare_ufw_sync import __version__
 from cloudflare_ufw_sync.config import Config
+from cloudflare_ufw_sync.i18n import set_locale, t
 from cloudflare_ufw_sync.sync import SyncService
 
 logger = logging.getLogger(__name__)
+
+
+def _extract_lang(args: list[str] | None) -> str | None:
+    """Read --lang before argparse runs so --help uses the requested locale."""
+    raw = sys.argv[1:] if args is None else args
+    for idx, arg in enumerate(raw):
+        if arg == "--lang" and idx + 1 < len(raw):
+            return raw[idx + 1]
+        if arg.startswith("--lang="):
+            return arg.split("=", 1)[1]
+    return None
 
 
 def parse_args(args: list[str] | None = None) -> argparse.Namespace:
@@ -29,44 +41,46 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     Returns:
         Parsed arguments as an argparse.Namespace object.
     """
-    parser = argparse.ArgumentParser(
-        description="Cloudflare IP synchronization for UFW"
-    )
+    set_locale(_extract_lang(args))
+    parser = argparse.ArgumentParser(description=t("cli.description"))
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"
     )
-    parser.add_argument("--config", "-c", type=str, help="Path to configuration file")
-    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
+    parser.add_argument("--config", "-c", type=str, help=t("cli.config_help"))
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help=t("cli.verbose_help")
+    )
+    parser.add_argument("--lang", type=str, default=None, help=t("cli.lang_help"))
 
-    subparsers = parser.add_subparsers(dest="command", help="Command to run")
+    subparsers = parser.add_subparsers(dest="command", help=t("cli.command_help"))
 
     # Sync command
-    sync_parser = subparsers.add_parser(
-        "sync", help="Synchronize Cloudflare IPs with UFW"
-    )
+    sync_parser = subparsers.add_parser("sync", help=t("cli.sync_help"))
     sync_parser.add_argument(
-        "--force", "-f", action="store_true", help="Force synchronization"
+        "--force", "-f", action="store_true", help=t("cli.sync_force_help")
     )
 
     # Daemon command
-    daemon_parser = subparsers.add_parser("daemon", help="Run as a daemon")
+    daemon_parser = subparsers.add_parser("daemon", help=t("cli.daemon_help"))
     daemon_parser.add_argument(
-        "--foreground", action="store_true", help="Run in foreground"
+        "--foreground", action="store_true", help=t("cli.daemon_foreground_help")
     )
 
     # Status command
-    subparsers.add_parser("status", help="Show status")
+    subparsers.add_parser("status", help=t("cli.status_help"))
 
     # Install command
-    install_parser = subparsers.add_parser("install", help="Install as a service")
+    install_parser = subparsers.add_parser("install", help=t("cli.install_help"))
     install_parser.add_argument(
-        "--no-enable", action="store_true", help="Don't enable service"
+        "--no-enable", action="store_true", help=t("cli.install_no_enable_help")
     )
 
     # Uninstall command
-    subparsers.add_parser("uninstall", help="Uninstall service")
+    subparsers.add_parser("uninstall", help=t("cli.uninstall_help"))
 
-    return parser.parse_args(args)
+    parsed = parser.parse_args(args)
+    set_locale(parsed.lang)
+    return parsed
 
 
 def handle_sync(config: Config, force: bool = False) -> int:
@@ -82,14 +96,14 @@ def handle_sync(config: Config, force: bool = False) -> int:
     sync_service = SyncService(config)
     try:
         result = sync_service.sync()
-        print("Synchronization completed:")
-        print(f"  IPv4 ranges: {result['ips']['v4']}")
-        print(f"  IPv6 ranges: {result['ips']['v6']}")
-        print(f"  Rules added: {result['rules']['added']}")
-        print(f"  Rules removed: {result['rules']['removed']}")
+        print(t("sync.completed"))
+        print(t("sync.ipv4_ranges", count=result["ips"]["v4"]))
+        print(t("sync.ipv6_ranges", count=result["ips"]["v6"]))
+        print(t("sync.rules_added", count=result["rules"]["added"]))
+        print(t("sync.rules_removed", count=result["rules"]["removed"]))
         return 0
     except Exception as e:
-        logger.error(f"Synchronization failed: {e!s}")
+        logger.error(t("sync.failed", error=e))
         return 1
 
 
@@ -116,7 +130,7 @@ def handle_daemon(config: Config, foreground: bool = False) -> int:
         sync_service.run_daemon()
         return 0
     except Exception as e:
-        logger.error(f"Daemon failed: {e!s}")
+        logger.error(t("daemon.failed", error=e))
         return 1
 
 
@@ -137,12 +151,12 @@ def handle_status(config: Config) -> int:
 
         ufw = UFWManager()
         existing_rules = ufw.get_existing_rules()
-        print("Cloudflare UFW Sync Status:")
-        print(f"  IPv4 rules: {len(existing_rules['v4'])}")
-        print(f"  IPv6 rules: {len(existing_rules['v6'])}")
+        print(t("status.header"))
+        print(t("status.ipv4_rules", count=len(existing_rules["v4"])))
+        print(t("status.ipv6_rules", count=len(existing_rules["v6"])))
         return 0
     except Exception as e:
-        logger.error(f"Status check failed: {e!s}")
+        logger.error(t("status.failed", error=e))
         return 1
 
 
@@ -163,7 +177,7 @@ def handle_install(config: Config, no_enable: bool = False) -> int:
     script_dir = Path(__file__).resolve().parent.parent.parent / "scripts"
 
     if not (script_dir / "cloudflare-ufw-sync.service").exists():
-        logger.error("Service file not found")
+        logger.error(t("install.service_not_found"))
         return 1
 
     try:
@@ -173,22 +187,22 @@ def handle_install(config: Config, no_enable: bool = False) -> int:
         # Copy service file
         dest = Path("/etc/systemd/system/cloudflare-ufw-sync.service")
         shutil.copy(script_dir / "cloudflare-ufw-sync.service", dest)
-        print(f"Service file installed at {dest}")
+        print(t("install.service_installed", dest=dest))
 
         # Reload systemd
         subprocess.run(["systemctl", "daemon-reload"], check=True)
-        print("Systemd daemon reloaded")
+        print(t("install.daemon_reloaded"))
 
         if not no_enable:
             # Enable and start service
             subprocess.run(["systemctl", "enable", "cloudflare-ufw-sync"], check=True)
-            print("Service enabled")
+            print(t("install.service_enabled"))
             subprocess.run(["systemctl", "start", "cloudflare-ufw-sync"], check=True)
-            print("Service started")
+            print(t("install.service_started"))
 
         return 0
     except Exception as e:
-        logger.error(f"Installation failed: {e!s}")
+        logger.error(t("install.failed", error=e))
         return 1
 
 
@@ -209,23 +223,23 @@ def handle_uninstall(config: Config) -> int:
 
         # Stop and disable service
         subprocess.run(["systemctl", "stop", "cloudflare-ufw-sync"], check=False)
-        print("Service stopped")
+        print(t("uninstall.service_stopped"))
         subprocess.run(["systemctl", "disable", "cloudflare-ufw-sync"], check=False)
-        print("Service disabled")
+        print(t("uninstall.service_disabled"))
 
         # Remove service file
         service_file = Path("/etc/systemd/system/cloudflare-ufw-sync.service")
         if service_file.exists():
             service_file.unlink()
-            print(f"Service file removed: {service_file}")
+            print(t("uninstall.service_removed", path=service_file))
 
         # Reload systemd
         subprocess.run(["systemctl", "daemon-reload"], check=True)
-        print("Systemd daemon reloaded")
+        print(t("install.daemon_reloaded"))
 
         return 0
     except Exception as e:
-        logger.error(f"Uninstallation failed: {e!s}")
+        logger.error(t("uninstall.failed", error=e))
         return 1
 
 
@@ -264,7 +278,7 @@ def main(args: list[str] | None = None) -> int:
     elif parsed_args.command == "uninstall":
         return handle_uninstall(config)
     else:
-        print("No command specified. Use --help for usage information.")
+        print(t("cli.no_command"))
         return 1
 
 
