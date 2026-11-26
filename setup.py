@@ -59,5 +59,6 @@ setup(
         ],
     },
     include_package_data=True,
+    package_data={"cloudflare_ufw_sync": ["locales/*.json"]},
     zip_safe=False,
 )

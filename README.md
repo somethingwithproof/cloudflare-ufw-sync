@@ -83,6 +83,15 @@ sudo systemctl enable cloudflare-ufw-sync
 sudo systemctl start cloudflare-ufw-sync
 ```
 
+## Localization
+
+CLI help, status summaries, and operational messages support 20 locales (`en`, `de`, `es`, `fr`, `it`, `pt-BR`, `nl`, `ru`, `uk`, `ja`, `ko`, `zh-CN`, `zh-TW`, `ar`, `hi`, `pl`, `tr`, `sv`, `vi`, `id`) with zero extra dependencies. Resolution checks `--lang`, then `LC_ALL`, `LC_MESSAGES`, and `LANG`, falling back to `en`.
+
+```bash
+cloudflare-ufw-sync --lang de status
+LANG=fr_FR.UTF-8 cloudflare-ufw-sync --help
+```
+
 ## Development
 
 ### Testing with Docker
