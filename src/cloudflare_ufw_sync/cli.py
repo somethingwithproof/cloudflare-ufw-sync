@@ -12,6 +12,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+from typing import NoReturn
 
 from cloudflare_ufw_sync import __version__
 from cloudflare_ufw_sync.config import Config
@@ -21,15 +22,24 @@ from cloudflare_ufw_sync.sync import SyncService
 logger = logging.getLogger(__name__)
 
 
+class _LangPreParser(argparse.ArgumentParser):
+    """Preliminary parser that ignores errors so the main parser reports them."""
+
+    def error(self, message: str) -> NoReturn:
+        raise ValueError(message)
+
+
 def _extract_lang(args: list[str] | None) -> str | None:
     """Read --lang before argparse runs so --help uses the requested locale."""
     raw = sys.argv[1:] if args is None else args
-    for idx, arg in enumerate(raw):
-        if arg == "--lang" and idx + 1 < len(raw):
-            return raw[idx + 1]
-        if arg.startswith("--lang="):
-            return arg.split("=", 1)[1]
-    return None
+    pre_parser = _LangPreParser(add_help=False)
+    pre_parser.add_argument("--lang", type=str, default=None)
+    try:
+        ns, _ = pre_parser.parse_known_args(raw)
+    except ValueError:
+        return None
+    lang: str | None = ns.lang
+    return lang
 
 
 def parse_args(args: list[str] | None = None) -> argparse.Namespace:

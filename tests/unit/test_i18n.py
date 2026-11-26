@@ -55,11 +55,15 @@ def test_all_20_locales_load_with_key_and_placeholder_parity() -> None:
         ("de_DE.UTF-8", "de"),
         ("zh_TW", "zh-TW"),
         ("zh_HK", "zh-TW"),
+        ("zh-TW-x-private", "zh-TW"),
+        ("zh-HK-x-private", "zh-TW"),
         ("zh-Hant-TW", "zh-TW"),
+        ("zh-Hans-TW", "zh-CN"),
         ("zh_CN.UTF-8", "zh-CN"),
         ("zh", "zh-CN"),
         ("pt_BR.UTF-8", "pt-BR"),
         ("pt", "pt-BR"),
+        ("x-private", "en"),
         ("xx_YY", "en"),
     ],
 )
@@ -95,3 +99,17 @@ def test_cli_lang_flag_and_default_english(capsys: pytest.CaptureFixture[str]) -
     ns = parse_args(["--lang=ja", "status"])
     assert ns.lang == "ja"
     assert get_locale() == "ja"
+
+    with pytest.raises(SystemExit) as exc_abbrev:
+        parse_args(["--lan=de", "--help"])
+    assert exc_abbrev.value.code == 0
+    assert " ".join(t("cli.description", locale="de").split()) in " ".join(
+        capsys.readouterr().out.split()
+    )
+
+    with pytest.raises(SystemExit) as exc_repeat:
+        parse_args(["--lang=en", "--lang=fr", "--help"])
+    assert exc_repeat.value.code == 0
+    assert " ".join(t("cli.description", locale="fr").split()) in " ".join(
+        capsys.readouterr().out.split()
+    )
