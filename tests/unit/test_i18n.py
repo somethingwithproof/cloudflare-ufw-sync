@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Thomas Vincent <thomasvincent@gmail.com>
 # SPDX-License-Identifier: MIT
 
-"""Tests for 45-locale i18n support in cloudflare-ufw-sync."""
+"""Tests for 48-locale i18n support in cloudflare-ufw-sync."""
 
 import re
 
@@ -31,8 +31,8 @@ def _reset_locale(monkeypatch: pytest.MonkeyPatch) -> None:
     set_locale(None)
 
 
-def test_all_45_locales_load_with_key_and_placeholder_parity() -> None:
-    assert len(SUPPORTED_LOCALES) == 45
+def test_all_48_locales_load_with_key_and_placeholder_parity() -> None:
+    assert len(SUPPORTED_LOCALES) == 48
     en = load_catalog(DEFAULT_LOCALE)
     assert len(en) > 0
     for locale in SUPPORTED_LOCALES:
@@ -43,6 +43,20 @@ def test_all_45_locales_load_with_key_and_placeholder_parity() -> None:
             assert sorted(PLACEHOLDER_RE.findall(catalog[key])) == sorted(
                 PLACEHOLDER_RE.findall(en_val)
             ), (locale, key)
+
+
+def test_bcms_locales_are_distinct_and_serbian_uses_cyrillic() -> None:
+    bs = load_catalog("bs")
+    hr = load_catalog("hr")
+    sr = load_catalog("sr")
+
+    assert bs != hr
+    assert bs != sr
+    assert hr != sr
+    assert sum(1 for k in bs if bs[k] != hr[k]) >= 20
+    cyrillic_re = re.compile(r"[\u0400-\u04FF]")
+    for key, value in sr.items():
+        assert cyrillic_re.search(value), key
 
 
 @pytest.mark.parametrize(
@@ -92,6 +106,17 @@ def test_all_45_locales_load_with_key_and_placeholder_parity() -> None:
         ("ur_PK", "ur"),
         ("ms_MY.UTF-8", "ms"),
         ("tl_PH.UTF-8", "fil"),
+        ("bs-BA", "bs"),
+        ("bs_BA.UTF-8", "bs"),
+        ("hr-HR", "hr"),
+        ("hr_HR.UTF-8", "hr"),
+        ("sr-RS", "sr"),
+        ("sr_RS.UTF-8", "sr"),
+        ("sr-Cyrl", "sr"),
+        ("sr-Latn", "sr"),
+        ("sr-Cyrl-RS", "sr"),
+        ("sr-Latn-RS", "sr"),
+        ("sr_RS@latin", "sr"),
         ("xx_YY", "en"),
     ],
 )
