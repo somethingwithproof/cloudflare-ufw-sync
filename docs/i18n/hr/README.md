@@ -69,12 +69,14 @@ sync:
 
 ### Naredbeni redak
 
+Sinkronizacija postavlja zadanu politiku i uključuje UFW. Prije prve sinkronizacije dopustite pristup priključku za administraciju kako biste zadržali udaljeni pristup.
+
 ```bash
 # Run a sync operation
-cloudflare-ufw-sync sync
+sudo cloudflare-ufw-sync sync
 
 # Run in daemon mode
-cloudflare-ufw-sync daemon
+sudo cloudflare-ufw-sync daemon
 
 # View current status
 cloudflare-ufw-sync status
@@ -85,6 +87,7 @@ cloudflare-ufw-sync status
 Priložena je datoteka usluge systemd za izvođenje sinkronizacije kao pozadinske usluge:
 
 ```bash
+sudo install -d -m 0755 /var/log/cloudflare-ufw-sync
 sudo cp scripts/cloudflare-ufw-sync.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable cloudflare-ufw-sync
@@ -179,9 +182,8 @@ Ako radije pokrećete testove i statičku analizu ručno:
 pytest
 
 # Run linting
-black .
-isort .
-flake8
+ruff check .
+ruff format --check .
 
 # Run type checking
 mypy src

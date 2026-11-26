@@ -71,10 +71,10 @@ sync:
 
 ```bash
 # Run a sync operation
-cloudflare-ufw-sync sync
+sudo cloudflare-ufw-sync sync
 
 # Run in daemon mode
-cloudflare-ufw-sync daemon
+sudo cloudflare-ufw-sync daemon
 
 # View current status
 cloudflare-ufw-sync status
@@ -85,6 +85,7 @@ cloudflare-ufw-sync status
 सिंक्रनाइज़ेशन को एक सेवा के रूप में चलाने के लिए एक systemd सेवा फ़ाइल प्रदान की गई है:
 
 ```bash
+sudo install -d -m 0755 /var/log/cloudflare-ufw-sync
 sudo cp scripts/cloudflare-ufw-sync.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable cloudflare-ufw-sync
@@ -179,9 +180,8 @@ tox -e format
 pytest
 
 # Run linting
-black .
-isort .
-flake8
+ruff check .
+ruff format --check .
 
 # Run type checking
 mypy src
